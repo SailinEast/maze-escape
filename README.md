@@ -1,8 +1,8 @@
 # Assignment 3. Maze Escape
 
-Student ID: 250738
-Name: Anas
-Group: SE-2511
+Student ID: 250738\
+Name: Anas\
+Group: SE-2511\
 Maze size (rows x columns): 9 x 12
 
 This file is the report. Fill it in as you go. How to start: `START_HERE.md`. The task: `docs/Assignment3.pdf`.
