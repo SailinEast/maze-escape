@@ -1,3 +1,5 @@
+import java.util.*;
+
 /**
  * Missions 4 and 5. The slides: a directed graph. Cells are 0 .. n-1, slide i goes from s.from()[i] to s.to()[i]
  * and takes s.time()[i]. There are no slides from a cell to itself, and the exit can always be reached from the start.
@@ -19,8 +21,68 @@ public class Zones {
      * Is DAG in Main is 1 when the number of zones equals the number of cells (no cycle), so you do not need a separate check.
      */
     public static int[] kosaraju(Input.Slides s) {
-        // TODO
-        return new int[s.n()];
+        int n = s.n();
+        int[][] from = Graphs.slidesFrom(s);
+        int[][] into = Graphs.slidesInto(s);
+
+        // DFS on forward slides to get finishing order
+        // state: 0 = unvisited, 1 = visiting (on stack), 2 = finished
+        int[] state = new int[n];
+        List<Integer> finishedOrder = new ArrayList<>(n);
+        Deque<Integer> stack = new ArrayDeque<>();
+
+        for (int start = 0; start < n; start++) {
+            if (state[start] != 0) continue;
+            stack.push(start);
+
+            while (!stack.isEmpty()) {
+                int u = stack.pop();
+                if (state[u] == 2) continue;
+
+                if (state[u] == 1) {
+                    // All neighbours explored
+                    state[u] = 2;
+                    finishedOrder.add(u);
+                } else {
+                    // First time visiting u:
+                    //     push u back, then push its unvisited neighbours
+                    state[u] = 1;
+                    stack.push(u);
+                    for (int slide : from[u]) {
+                        int v = s.to()[slide];
+                        if (state[v] == 0) {
+                            stack.push(v);
+                        }
+                    }
+                }
+            }
+        }
+
+        // DFS on reversed slides
+        int[] zoneOf = new int[n];
+        Arrays.fill(zoneOf, -1);
+        int zoneCount = 0;
+
+        for (int i = n - 1; i >= 0; i--) {
+            int start = finishedOrder.get(i);
+            if (zoneOf[start] != -1) continue;
+
+            zoneOf[start] = zoneCount;
+            stack.push(start);
+
+            while (!stack.isEmpty()) {
+                int u = stack.pop();
+                for (int slide : into[u]) {
+                    int v = s.from()[slide];
+                    if (zoneOf[v] == -1) {
+                        zoneOf[v] = zoneCount;
+                        stack.push(v);
+                    }
+                }
+            }
+            zoneCount++;
+        }
+        return zoneOf;
     }
 
     /**
