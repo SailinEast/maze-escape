@@ -92,7 +92,48 @@ public class Zones {
      * [1] the cost of the cheapest route from the zone of cell 0 to the zone of the last cell.
      */
     public static long[] routes(Input.Slides s, int[] zoneOf, int zoneCount) {
-        // TODO
-        return new long[]{0, 0};
+        int n = s.n();
+        int[][] from = Graphs.slidesFrom(s);
+
+        // Group by zone number
+        List<List<Integer>> cellsInZone = new ArrayList<>(zoneCount);
+        for (int x = 0; x < zoneCount; x++) {
+            cellsInZone.add(new ArrayList<>());
+        }
+        for (int u = 0; u < n; u++) {
+            cellsInZone.get(zoneOf[u]).add(u);
+        }
+
+        int[] stages = new int[zoneCount];
+        Arrays.fill(stages, 1);
+
+        long INF = Long.MAX_VALUE / 4;
+        long[] minCost = new long[zoneCount];
+        Arrays.fill(minCost, INF);
+        minCost[zoneOf[0]] = 0;
+
+        // Zones in topological order: 0..zoneCount-1
+        for (int x = 0; x < zoneCount; x++) {
+            for (int u : cellsInZone.get(x)) {
+                for (int slide : from[u]) {
+                    int y = zoneOf[s.to()[slide]];
+                    int w = s.time()[slide];
+                    if (x != y) {
+                        stages[y] = Math.max(stages[y], stages[x] + 1);
+                        if (minCost[x] != INF) {
+                            minCost[y] = Math.min(minCost[y], minCost[x] + w);
+                        }
+                    }
+                }
+            }
+        }
+
+        long maxStages = 1;
+        for (int x = 0; x < zoneCount; x++) {
+            maxStages = Math.max(maxStages, stages[x]);
+        }
+
+        long fastestCost = minCost[zoneOf[n - 1]];
+        return new long[]{maxStages, fastestCost};
     }
 }
